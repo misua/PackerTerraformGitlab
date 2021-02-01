@@ -2,26 +2,41 @@
     "builders": [
         {
             "type": "amazon-ebs",
-            "access_key": "$AWS_ACCESS_KEY_ID",
-            "secret_key": "$AWS_SECRET_ACCESS_KEY",
-            "security_group_id": "sg-0458d58f141c55a5f",
-            "region": "us-east-2",
-            "ami_name":"ebs_backed_ami_by_packer",
-            "source_ami": "ami-03657b56516ab7912",
+            "profile": "packershit",
+            "access_key": "AWS_ACCESS_KEY",
+            "secret_key": "AWS_SECRET_KEY",
+            "ami_name":"EBS-{{isotime | clean_resource_name}}",
+            "region": "us-east-1",
+            "ami_regions": ["us-east-1"],
             "instance_type": "t2.micro",
+            "ssh_keypair_name": "SysOps2020",
+            "ssh_private_key_file": "/home/ubuntu/keys/SysOps2020.pem",
+            "source_ami_filter": {
+                "filters": {
+                  "virtualization-type": "hvm",
+                  "name": "amzn2-ami-hvm-2.0.*-x86_64*",
+                  "root-device-type": "ebs"
+                },
+                "owners": ["amazon"],
+                "most_recent": true      
+            },
             "ssh_username": "ec2-user"
         }
     ],
-
     "provisioners": [
         {
             "type": "file",
             "source": "scripts",
-            "destination": "/home/ubuntu/"
-          },    
+            "destination": "/home/ec2-user/"
+          },        
           {
             "type": "shell",
             "script": "scripts/install.sh"
+
+         },
+         {
+            "type": "shell",
+            "script": "scripts/cleanup.sh"
 
          }
     ]
