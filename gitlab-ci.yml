@@ -1,0 +1,31 @@
+stages:
+  - validate
+  - build
+  - deploy
+
+
+packer validate:
+  stage: validate
+  script:
+    - find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer validate
+    
+
+build-ami:
+  stage: build
+  script:
+    - find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build
+  when: manual
+  only:
+    - dev
+
+build_deploy:
+  stage: deploy
+  script:
+    – find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build
+  
+  dependencies:
+    - validate
+    - build-ami
+  when: manual
+  only:
+    - master
