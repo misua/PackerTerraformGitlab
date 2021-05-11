@@ -1,31 +1,44 @@
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}/terraform
+
+before_script:
+  - cd ${TF_ROOT}
+  - pwd
+
 stages:
+  - prepare
   - validate
   - build
   - deploy
 
 
-packer validate:
+init:
+  stage: prepare
+  script:
+    - find ../ -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer validate
+
+validate:
   stage: validate
   script:
-    - find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer validate
-    
+    - terraform init && terraform validate
 
-build-ami:
+
+build:
   stage: build
   script:
-    - find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build
-  when: manual
+    - find ../ -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build 
+    - terraform init && TF_LOG=INFO terraform apply --auto-approve
   only:
     - dev
 
-build_deploy:
+deploy:
   stage: deploy
   script:
-    – find . -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build
+    – find ../ -maxdepth 1 -name '*.json' -print0 | xargs -t0n1 packer build
   
   dependencies:
     - validate
-    - build-ami
+    - build
   when: manual
   only:
     - master
